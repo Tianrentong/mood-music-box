@@ -64,7 +64,7 @@ body {
   flex-direction: column;
   opacity: 0;
   transition: opacity 0.25s ease;
-  padding-bottom: 16px;
+  padding-bottom: 10px;
 }
 .page.active {
   display: flex;
