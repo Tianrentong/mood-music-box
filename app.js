@@ -50,8 +50,9 @@ const tabPlaylist = $('#tab-playlist');
 const playlistPageList = $('#playlist-page-list');
 const playlistCount = $('#playlist-count');
 
-// 心情标签
+// 心情标签/播放模式
 const moodTag = $('#mood-tag');
+const btnMode = $('#btn-mode');
 
 // 收藏 / 个人中心
 const favoritesList = $('#favorites-list');
@@ -73,6 +74,7 @@ let favorites = [];              // 收藏列表
 let chatHistory = [];            // DeepSeek 对话历史
 let isAIThinking = false;        // AI 是否正在回复
 let currentMood = null;          // 当前检测到的心情
+let playMode = 0;                // 播放模式：0=列表循环 1=单曲循环 2=随机
 
 // 心情→展示映射表
 const MOOD_DISPLAY = {
@@ -87,6 +89,19 @@ const MOOD_DISPLAY = {
   '愤怒': { emoji: '😤', color: '#FF4500' },
   '思念': { emoji: '🥺', color: '#F0E68C' },
 };
+
+// ==================== Toast 提示 ====================
+function showToast(text) {
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = text;
+  document.body.appendChild(toast);
+  requestAnimationFrame(() => toast.classList.add('show'));
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 300);
+  }, 2000);
+}
 
 // ==================== 初始化 ====================
 function init() {
@@ -341,11 +356,13 @@ if (SpeechRecognitionAPI) {
   }
   if (recognition) {
     recognition.lang = 'zh-CN';
-    recognition.interimResults = false;
+    recognition.interimResults = true;
     recognition.maxAlternatives = 1;
 
     recognition.onresult = (event) => {
-      const text = event.results[0][0].transcript.trim();
+      const result = event.results[event.results.length - 1];
+      if (!result.isFinal) return;
+      const text = result[0].transcript.trim();
       if (text) {
         chatInput.value = text;
         sendMessage();
@@ -379,8 +396,7 @@ btnVoice.addEventListener('click', () => {
   }
   if (isAIThinking) return;
   if (isListening) {
-    recognition.abort();
-    stopVoiceListening();
+    recognition.stop();
     return;
   }
   try {
@@ -577,6 +593,7 @@ function renderPlaylist() {
         <div class="playlist-item-btns">
           <button class="playlist-item-btn" onclick="event.stopPropagation(); playlistPlay(${i})" title="播放">▶</button>
           <button class="playlist-item-btn" onclick="event.stopPropagation(); playlistToggleFav(${i})" title="收藏">${isFav ? '❤️' : '🤍'}</button>
+          <button class="playlist-item-btn btn-del" onclick="event.stopPropagation(); playlistRemove(${i})" title="删除">✕</button>
         </div>
       </div>
     `;
@@ -599,6 +616,29 @@ function playlistToggleFav(index) {
     renderPlaylist();
     renderFavorites();
   }
+}
+
+// 从列表删除
+function playlistRemove(index) {
+  if (index < 0 || index >= playlist.length) return;
+  const removed = playlist[index];
+  playlist.splice(index, 1);
+  if (currentSong && currentSong.id === removed.id) {
+    audioPlayer.pause();
+    audioPlayer.src = '';
+    audioPlayer.removeAttribute('src');
+    currentSong = null;
+    playerCover.classList.remove('rotating');
+    btnPlay.textContent = '▶';
+    songName.textContent = '未在播放';
+    songArtist.textContent = '搜索歌曲开始播放';
+    lyricsContainer.innerHTML = '<p class="lyrics-placeholder">歌词将在这里显示</p>';
+    playlistIndex = -1;
+  } else if (index < playlistIndex) {
+    playlistIndex--;
+  }
+  renderPlaylist();
+  showToast('已从列表删除');
 }
 
 // HTML 转义（防 XSS）
@@ -746,11 +786,18 @@ btnPlay.addEventListener('click', () => {
   if (audioPlayer.paused) {
     audioPlayer.play();
     btnPlay.textContent = '⏸';
+    playerCover.classList.add('rotating');
   } else {
     audioPlayer.pause();
     btnPlay.textContent = '▶';
+    playerCover.classList.remove('rotating');
   }
 });
+
+// 封面旋转跟随播放状态
+audioPlayer.addEventListener('play', () => playerCover.classList.add('rotating'));
+audioPlayer.addEventListener('pause', () => playerCover.classList.remove('rotating'));
+audioPlayer.addEventListener('ended', () => playerCover.classList.remove('rotating'));
 
 // 进度条 + 歌词同步
 audioPlayer.addEventListener('timeupdate', () => {
@@ -786,12 +833,35 @@ audioPlayer.addEventListener('loadedmetadata', () => {
   timeTotal.textContent = formatTime(audioPlayer.duration);
 });
 
-// 点击进度条跳转
-progressBar.addEventListener('click', (e) => {
+// 进度条拖拽
+function seekTo(e) {
   if (!audioPlayer.duration) return;
   const rect = progressBar.getBoundingClientRect();
-  const pct = (e.clientX - rect.left) / rect.width;
+  const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
   audioPlayer.currentTime = pct * audioPlayer.duration;
+}
+
+let isDragging = false;
+progressBar.addEventListener('mousedown', (e) => {
+  isDragging = true;
+  seekTo(e);
+});
+document.addEventListener('mousemove', (e) => {
+  if (isDragging) seekTo(e);
+});
+document.addEventListener('mouseup', () => {
+  isDragging = false;
+});
+// 触摸支持
+progressBar.addEventListener('touchstart', (e) => {
+  isDragging = true;
+  seekTo(e.touches[0]);
+});
+document.addEventListener('touchmove', (e) => {
+  if (isDragging) seekTo(e.touches[0]);
+});
+document.addEventListener('touchend', () => {
+  isDragging = false;
 });
 
 // 播放结束自动下一首
@@ -823,10 +893,30 @@ function updateMoodTag(mood) {
 
 function playNext() {
   if (playlist.length === 0) return;
-  playlistIndex = (playlistIndex + 1) % playlist.length;
-  playSong(playlist[playlistIndex]);
+  if (playMode === 1) {
+    // 单曲循环：重播当前
+    playSong(playlist[playlistIndex]);
+  } else if (playMode === 2) {
+    // 随机播放
+    playlistIndex = Math.floor(Math.random() * playlist.length);
+    playSong(playlist[playlistIndex]);
+  } else {
+    // 列表循环
+    playlistIndex = (playlistIndex + 1) % playlist.length;
+    playSong(playlist[playlistIndex]);
+  }
   renderPlaylist();
 }
+
+// 播放模式按钮
+const MODE_ICONS = ['🔁', '🔂', '🔀'];
+const MODE_LABELS = ['列表循环', '单曲循环', '随机播放'];
+const modeLabel = $('#mode-label');
+btnMode.addEventListener('click', () => {
+  playMode = (playMode + 1) % 3;
+  btnMode.textContent = MODE_ICONS[playMode];
+  modeLabel.textContent = MODE_LABELS[playMode];
+});
 
 function playPrev() {
   if (playlist.length === 0) return;
@@ -876,10 +966,12 @@ function toggleFavorite(song) {
     btnFavorite.classList.add('favorited');
     setTimeout(() => btnFavorite.classList.remove('favorited'), 400);
     saveFavorites();
+    showToast('❤️ 已收藏');
   } else {
     favorites.splice(index, 1);
     btnFavorite.textContent = '🤍';
     saveFavorites();
+    showToast('已取消收藏');
   }
 }
 
@@ -920,7 +1012,16 @@ favoritesList.addEventListener('click', (e) => {
     renderFavorites();
   } else if (e.target.classList.contains('fav-play')) {
     // 播放收藏的歌曲
-    // TODO: Step 6 实现播放
+    const fav = favorites.find(f => f.id == id);
+    if (!fav) return;
+    // 如果不在播放列表里，加进去
+    if (!playlist.find(p => p.id === fav.id)) {
+      playlist.push(fav);
+    }
+    playlistIndex = playlist.findIndex(p => p.id === fav.id);
+    playSong(playlist[playlistIndex]);
+    renderPlaylist();
+    switchTab('player');
   }
 });
 
