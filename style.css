@@ -258,7 +258,7 @@ body {
 .bottom-nav {
   display: flex;
   height: var(--nav-height);
-  padding-bottom: env(safe-area-inset-bottom, 0);
+  padding-bottom: calc(env(safe-area-inset-bottom, 0) + 50px);
   background: var(--bg-card);
   border-top: 1px solid rgba(255,255,255,0.06);
   flex-shrink: 0;
