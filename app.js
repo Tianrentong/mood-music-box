@@ -363,6 +363,12 @@ if (!SpeechRecognitionAPI) {
   console.log('⚠️ 语音识别不可用，按钮已隐藏');
 }
 
+// 小屏幕设备（手机）隐藏语音按钮，电脑端保留
+if (window.innerWidth < 768) {
+  btnVoice.style.display = 'none';
+  console.log('📱 移动端，语音按钮已隐藏');
+}
+
 btnVoice.addEventListener('click', () => {
   if (!SpeechRecognitionAPI) {
     alert('你的浏览器不支持语音识别');
