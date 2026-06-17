@@ -356,30 +356,20 @@ if (SpeechRecognitionAPI) {
   }
   if (recognition) {
     recognition.lang = 'zh-CN';
-    recognition.interimResults = true;
+    recognition.interimResults = false;
+    recognition.continuous = false;
     recognition.maxAlternatives = 1;
-    let lastSpeech = '';
 
     recognition.onresult = (event) => {
-      const result = event.results[event.results.length - 1];
-      const text = result[0].transcript.trim();
-      if (text) lastSpeech = text;
-      // 最终结果直接发送
-      if (result.isFinal && text) {
+      const text = event.results[0][0].transcript.trim();
+      if (text) {
         chatInput.value = text;
         sendMessage();
-        lastSpeech = '';
       }
     };
 
     recognition.onerror = (event) => {
       console.error('语音识别错误:', event.error);
-      // 有内容就发送
-      if (lastSpeech) {
-        chatInput.value = lastSpeech;
-        sendMessage();
-        lastSpeech = '';
-      }
       stopVoiceListening();
       if (event.error === 'not-allowed') {
         alert('麦克风权限被拒绝，请在浏览器设置中允许麦克风访问。');
@@ -387,12 +377,6 @@ if (SpeechRecognitionAPI) {
     };
 
     recognition.onend = () => {
-      // 结束时如果有未发送的内容，发送
-      if (lastSpeech) {
-        chatInput.value = lastSpeech;
-        sendMessage();
-        lastSpeech = '';
-      }
       stopVoiceListening();
     };
   }
