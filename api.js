@@ -96,7 +96,7 @@ async function getSongUrl(id) {
     const res = await fetch(`${NETEASE_BASE}/song/url?id=${id}`);
     const data = await res.json();
     if (data.code === 200 && data.data?.[0]?.url) {
-      return data.data[0].url;
+      return data.data[0].url.replace(/^http:/, 'https:');
     }
   } catch (e) { /* fallthrough */ }
   return null;
