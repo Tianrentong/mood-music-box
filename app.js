@@ -338,6 +338,7 @@ const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechReco
 let recognition = null;
 let isListening = false;
 let voiceTimer = null;
+let voiceFailCount = 0;
 
 function stopVoiceListening() {
   isListening = false;
@@ -382,7 +383,10 @@ btnVoice.addEventListener('click', () => {
   recognition = makeRecognition();
   if (!recognition) return;
 
+  let hasResult = false;
   recognition.onresult = (event) => {
+    hasResult = true;
+    voiceFailCount = 0;
     const text = event.results[0][0].transcript.trim();
     if (text) {
       chatInput.value = text;
@@ -400,6 +404,10 @@ btnVoice.addEventListener('click', () => {
   };
 
   recognition.onend = () => {
+    if (!hasResult) {
+      voiceFailCount++;
+      if (voiceFailCount >= 2) btnVoice.style.display = 'none';
+    }
     recognition = null;
     stopVoiceListening();
   };
