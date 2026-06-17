@@ -422,6 +422,7 @@ btnVoice.addEventListener('click', () => {
     console.error('启动语音失败:', e);
     recognition = null;
     stopVoiceListening();
+    btnVoice.style.display = 'none';
   }
 });
 
