@@ -395,7 +395,8 @@ btnVoice.addEventListener('click', () => {
   }
   if (isAIThinking) return;
   if (isListening) {
-    recognition.stop();
+    try { recognition.stop(); } catch(e) {}
+    stopVoiceListening();
     return;
   }
   try {
@@ -405,6 +406,13 @@ btnVoice.addEventListener('click', () => {
     btnVoice.style.animation = 'pulse 0.8s infinite';
     chatInput.placeholder = '正在聆听...';
     console.log('语音识别已启动');
+    // 10 秒超时自动停止
+    setTimeout(() => {
+      if (isListening) {
+        try { recognition.stop(); } catch(e) {}
+        stopVoiceListening();
+      }
+    }, 10000);
   } catch (e) {
     console.error('启动语音失败:', e);
     alert('启动语音识别失败：' + e.message);
