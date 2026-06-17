@@ -4,7 +4,7 @@
    ============================================ */
 
 // Railway 公网网易云 API
-const NETEASE_BASE = 'http://192.168.47.56:3000';
+const NETEASE_BASE = 'https://netease-api-production-3325.up.railway.app';
 
 // DeepSeek API（不变）
 const DEEPSEEK_KEY = 'sk-8d0b08a8d4344e99ba6172bcd52df0f9';
