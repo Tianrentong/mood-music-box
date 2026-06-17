@@ -257,11 +257,12 @@ body {
 /* ---------- 底部导航 ---------- */
 .bottom-nav {
   display: flex;
-  height: var(--nav-height);
-  padding-bottom: env(safe-area-inset-bottom, 0);
+  height: calc(var(--nav-height) + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
   background: var(--bg-card);
   border-top: 1px solid rgba(255,255,255,0.06);
   flex-shrink: 0;
+  margin-bottom: 52px;
 }
 
 .nav-item {
@@ -439,6 +440,7 @@ body {
   display: flex;
   align-items: center;
   padding: 10px 12px;
+  padding-bottom: 62px;
   gap: 8px;
   background: var(--bg-card);
   border-top: 1px solid rgba(255,255,255,0.06);
