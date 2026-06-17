@@ -64,6 +64,7 @@ body {
   flex-direction: column;
   opacity: 0;
   transition: opacity 0.25s ease;
+  padding-bottom: 56px;
 }
 .page.active {
   display: flex;
@@ -262,7 +263,7 @@ body {
   background: var(--bg-card);
   border-top: 1px solid rgba(255,255,255,0.06);
   flex-shrink: 0;
-  margin-bottom: 52px;
+  margin-bottom: 0;
 }
 
 .nav-item {
@@ -440,7 +441,7 @@ body {
   display: flex;
   align-items: center;
   padding: 10px 12px;
-  padding-bottom: 62px;
+  padding-bottom: 12px;
   gap: 8px;
   background: var(--bg-card);
   border-top: 1px solid rgba(255,255,255,0.06);
@@ -1154,6 +1155,7 @@ body {
     height: 96vh;
     height: 96dvh;
     max-height: 900px;
+    padding-bottom: 0;
     border-radius: 20px;
     overflow: hidden;
     box-shadow: 0 20px 60px rgba(0,0,0,0.5);
