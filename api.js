@@ -3,8 +3,8 @@
    使用 Railway 公网 API，手机无需连接电脑
    ============================================ */
 
-// Railway 公网网易云 API
-const NETEASE_BASE = 'https://netease-cloud-music-api-production.up.railway.app';
+// 电脑本地网易云 API（手机连电脑热点时可用）
+const NETEASE_BASE = 'http://192.168.47.56:3000';
 
 // DeepSeek API（不变）
 const DEEPSEEK_KEY = 'sk-8d0b08a8d4344e99ba6172bcd52df0f9';
