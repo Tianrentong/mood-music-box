@@ -333,96 +333,95 @@ chatInput.addEventListener('keydown', (e) => {
 console.log('🔍 语音 API 检测:');
 console.log('  window.SpeechRecognition:', typeof window.SpeechRecognition, window.SpeechRecognition);
 console.log('  window.webkitSpeechRecognition:', typeof window.webkitSpeechRecognition, window.webkitSpeechRecognition);
-console.log('  navigator.mediaDevices:', !!navigator.mediaDevices);
-console.log('  navigator.userAgent:', navigator.userAgent);
 
 const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition = null;
 let isListening = false;
+let voiceTimer = null;
 
 function stopVoiceListening() {
   isListening = false;
   btnVoice.textContent = '🎤';
   btnVoice.style.animation = '';
   chatInput.placeholder = '说说你的心情，或者想听什么歌...';
+  if (voiceTimer) { clearTimeout(voiceTimer); voiceTimer = null; }
 }
 
-if (SpeechRecognitionAPI) {
-  try {
-    recognition = new SpeechRecognitionAPI();
-  } catch (e) {
-    console.error('创建语音识别对象失败:', e);
-    recognition = null;
-  }
-  if (recognition) {
-    recognition.lang = 'zh-CN';
-    recognition.interimResults = false;
-    recognition.continuous = false;
-    recognition.maxAlternatives = 1;
-
-    recognition.onresult = (event) => {
-      const text = event.results[0][0].transcript.trim();
-      if (text) {
-        chatInput.value = text;
-        sendMessage();
-      }
-    };
-
-    let recognitionEnded = false;
-    recognition.onerror = (event) => {
-      console.error('语音识别错误:', event.error);
-      stopVoiceListening();
-      if (event.error === 'not-allowed') {
-        alert('麦克风权限被拒绝');
-      } else if (event.error === 'no-speech') {
-        // 没检测到语音，静默处理
-      } else {
-        alert('语音错误: ' + event.error);
-      }
-    };
-
-    recognition.onend = () => {
-      recognitionEnded = true;
-      stopVoiceListening();
-    };
-  }
+function makeRecognition() {
+  if (!SpeechRecognitionAPI) return null;
+  const rec = new SpeechRecognitionAPI();
+  rec.lang = 'zh-CN';
+  rec.interimResults = false;
+  rec.continuous = false;
+  rec.maxAlternatives = 1;
+  return rec;
 }
 
-if (!recognition) {
+if (!SpeechRecognitionAPI) {
   btnVoice.style.display = 'none';
   console.log('⚠️ 语音识别不可用，按钮已隐藏');
 }
 
 btnVoice.addEventListener('click', () => {
-  console.log('语音按钮被点击, recognition:', !!recognition, 'isAIThinking:', isAIThinking, 'isListening:', isListening);
-  if (!recognition) {
-    alert('你的浏览器不支持语音识别，请使用 Chrome 或 Edge 浏览器。');
+  if (!SpeechRecognitionAPI) {
+    alert('你的浏览器不支持语音识别');
     return;
   }
   if (isAIThinking) return;
   if (isListening) {
-    try { recognition.stop(); } catch(e) {}
+    // 手动停止
+    if (recognition) {
+      try { recognition.stop(); } catch(e) {}
+      try { recognition.abort(); } catch(e) {}
+      recognition = null;
+    }
     stopVoiceListening();
     return;
   }
+  // 开始识别
+  recognition = makeRecognition();
+  if (!recognition) return;
+
+  recognition.onresult = (event) => {
+    const text = event.results[0][0].transcript.trim();
+    if (text) {
+      chatInput.value = text;
+      sendMessage();
+    }
+  };
+
+  recognition.onerror = (event) => {
+    console.error('语音错误:', event.error);
+    if (event.error === 'not-allowed') {
+      alert('麦克风权限被拒绝');
+    }
+    recognition = null;
+    stopVoiceListening();
+  };
+
+  recognition.onend = () => {
+    recognition = null;
+    stopVoiceListening();
+  };
+
   try {
-    try { recognition.abort(); } catch(e) {}
     recognition.start();
     isListening = true;
     btnVoice.textContent = '🔴';
     btnVoice.style.animation = 'pulse 0.8s infinite';
     chatInput.placeholder = '正在聆听...';
-    console.log('语音识别已启动');
-    // 10 秒超时自动停止
-    setTimeout(() => {
-      if (isListening) {
+    // 8秒无结果自动停止
+    voiceTimer = setTimeout(() => {
+      if (isListening && recognition) {
         try { recognition.stop(); } catch(e) {}
+        recognition = null;
         stopVoiceListening();
       }
-    }, 10000);
+    }, 8000);
   } catch (e) {
     console.error('启动语音失败:', e);
-    alert('启动语音识别失败：' + e.message);
+    recognition = null;
+    stopVoiceListening();
   }
 });
 
