@@ -406,6 +406,7 @@ btnVoice.addEventListener('click', () => {
     return;
   }
   try {
+    try { recognition.abort(); } catch(e) {}
     recognition.start();
     isListening = true;
     btnVoice.textContent = '🔴';
