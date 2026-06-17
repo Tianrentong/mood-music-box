@@ -368,15 +368,21 @@ if (SpeechRecognitionAPI) {
       }
     };
 
+    let recognitionEnded = false;
     recognition.onerror = (event) => {
       console.error('语音识别错误:', event.error);
       stopVoiceListening();
       if (event.error === 'not-allowed') {
-        alert('麦克风权限被拒绝，请在浏览器设置中允许麦克风访问。');
+        alert('麦克风权限被拒绝');
+      } else if (event.error === 'no-speech') {
+        // 没检测到语音，静默处理
+      } else {
+        alert('语音错误: ' + event.error);
       }
     };
 
     recognition.onend = () => {
+      recognitionEnded = true;
       stopVoiceListening();
     };
   }
