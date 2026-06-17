@@ -7,7 +7,7 @@
 const NETEASE_BASE = 'https://netease-api-production-3325.up.railway.app';
 
 // DeepSeek API（不变）
-const DEEPSEEK_KEY = 'sk-8d0b08a8d4344e99ba6172bcd52df0f9';
+const DEEPSEEK_KEY = 'sk-2d83c1e64a26481cbcc26872df4dad30';
 const DEEPSEEK_URL = 'https://api.deepseek.com/v1/chat/completions';
 
 const SYSTEM_PROMPT = `你是一个专业的音乐推荐助手，名叫"小乐"。你的特点：
