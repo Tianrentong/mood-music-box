@@ -64,7 +64,8 @@ body {
   flex-direction: column;
   opacity: 0;
   transition: opacity 0.25s ease;
-  padding-bottom: 10px;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 .page.active {
   display: flex;
@@ -1155,6 +1156,7 @@ body {
     height: 96vh;
     height: 96dvh;
     max-height: 900px;
+    padding-top: 0;
     padding-bottom: 0;
     border-radius: 20px;
     overflow: hidden;
