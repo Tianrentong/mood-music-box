@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>🎵 心情音乐盒</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="心情音乐盒">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%231a1a2e' width='100' height='100' rx='20'/><text y='.9em' font-size='70'>🎵</text></svg>">
+  <meta name="theme-color" content="#1a1a2e">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ==================== 登录页 ==================== -->
+  <div id="login-page" class="page active">
+    <div class="login-container">
+      <!-- Logo -->
+      <div class="login-logo">🎵</div>
+      <h1 class="login-title">心情音乐盒</h1>
+      <p class="login-subtitle">AI 懂你的音乐</p>
+
+      <!-- 输入区 -->
+      <div class="login-form">
+        <div class="input-group">
+          <span class="input-icon">👤</span>
+          <input
+            type="text"
+            id="nickname-input"
+            class="login-input"
+            placeholder="昵称"
+            maxlength="12"
+            autocomplete="off"
+          >
+        </div>
+        <div class="input-group">
+          <span class="input-icon">🔒</span>
+          <input
+            type="password"
+            id="password-input"
+            class="login-input"
+            placeholder="密码"
+            maxlength="20"
+          >
+        </div>
+
+        <!-- 提示信息 -->
+        <p id="login-msg" class="login-msg"></p>
+
+        <!-- 按钮 -->
+        <button id="btn-login" class="btn btn-primary">登 录</button>
+        <button id="btn-register" class="btn btn-secondary">注 册</button>
+
+        <!-- 手机扫码入口 -->
+        <div id="qr-section" class="qr-section" style="display:none">
+          <div class="login-divider"><span>📱 手机扫码打开</span></div>
+          <img id="qr-image" class="qr-image" src="" alt="扫码打开">
+          <p id="qr-url" class="qr-url"></p>
+        </div>
+
+        <div class="login-divider">
+          <span>或</span>
+        </div>
+
+        <button id="btn-guest" class="btn btn-ghost">🎭 游客模式进入</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 主界面 ==================== -->
+  <div id="main-page" class="page">
+    <!-- 页面容器 -->
+    <div class="main-content">
+
+      <!-- 💬 聊天页 -->
+      <div id="tab-chat" class="tab-content active">
+        <div id="chat-messages" class="chat-messages">
+          <!-- 欢迎消息 -->
+          <div class="chat-bubble bot">
+            <div class="bubble-avatar">🤖</div>
+            <div class="bubble-text">
+              你好！我是你的 AI 音乐助手 🎵<br>
+              告诉我你今天的<span class="highlight">心情</span>，或者直接说<span class="highlight">想听什么歌</span>，我来帮你找！
+            </div>
+          </div>
+        </div>
+
+        <!-- 聊天输入区 -->
+        <div class="chat-input-area">
+          <button id="btn-voice" class="btn-icon" title="语音输入">🎤</button>
+          <input
+            type="text"
+            id="chat-input"
+            class="chat-input"
+            placeholder="说说你的心情，或者想听什么歌..."
+            autocomplete="off"
+          >
+          <button id="btn-send" class="btn-send" title="发送">🚀</button>
+        </div>
+      </div>
+
+      <!-- 🎵 播放页 -->
+      <div id="tab-player" class="tab-content">
+        <div class="player-container">
+          <!-- 封面 -->
+          <div class="player-cover" id="player-cover">
+            <span class="cover-placeholder">🎵</span>
+          </div>
+
+          <!-- 歌曲信息 -->
+          <h2 id="song-name" class="song-name">未在播放</h2>
+          <p id="song-artist" class="song-artist">搜索歌曲开始播放</p>
+
+          <!-- 心情标签 -->
+          <span id="mood-tag" class="mood-tag" style="display:none"></span>
+
+          <!-- 收藏按钮 -->
+          <button id="btn-favorite" class="btn-favorite" title="收藏">🤍</button>
+
+          <!-- 进度条 -->
+          <div class="progress-area">
+            <span id="time-current" class="time-label">0:00</span>
+            <div class="progress-bar" id="progress-bar">
+              <div class="progress-fill" id="progress-fill"></div>
+              <div class="progress-thumb" id="progress-thumb"></div>
+            </div>
+            <span id="time-total" class="time-label">0:00</span>
+          </div>
+
+          <!-- 播放控制 -->
+          <div class="player-controls">
+            <button id="btn-prev" class="btn-icon" title="上一首">⏮</button>
+            <button id="btn-play" class="btn-play" title="播放/暂停">▶</button>
+            <button id="btn-next" class="btn-icon" title="下一首">⏭</button>
+          </div>
+
+          <!-- 音量 -->
+          <div class="volume-area">
+            <span class="volume-icon">🔊</span>
+            <input type="range" id="volume-slider" class="volume-slider" min="0" max="100" value="70">
+          </div>
+
+          <!-- 歌词 -->
+          <div id="lyrics-container" class="lyrics-container">
+            <p class="lyrics-placeholder">歌词将在这里显示</p>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- 📋 播放列表页 -->
+      <div id="tab-playlist" class="tab-content">
+        <div class="playlist-page-header">
+          <h2>📋 播放列表</h2>
+          <span class="playlist-count" id="playlist-count">0 首</span>
+        </div>
+        <div id="playlist-page-list" class="playlist-page-list">
+          <p class="empty-state">播放列表为空<br>去聊天页让 AI 推荐歌吧~ 🎵</p>
+        </div>
+      </div>
+
+      <!-- 👤 个人中心 -->
+      <div id="tab-favorites" class="tab-content">
+        <!-- 主页面 -->
+        <div id="profile-main" class="profile-main">
+          <!-- 头像区 -->
+          <div class="profile-header">
+            <div class="profile-avatar">🎵</div>
+            <div id="profile-name" class="profile-name">未登录</div>
+            <div id="profile-type" class="profile-type">游客</div>
+          </div>
+
+          <!-- 菜单 -->
+          <div class="profile-menu">
+            <button class="profile-menu-item" id="btn-go-fav">
+              <span>❤️</span>
+              <span>收藏歌单</span>
+              <span class="menu-arrow">›</span>
+            </button>
+            <button class="profile-menu-item" id="btn-go-playlist">
+              <span>📋</span>
+              <span>播放列表</span>
+              <span class="menu-arrow">›</span>
+            </button>
+          </div>
+
+          <!-- 退出按钮 -->
+          <div class="profile-footer">
+            <button id="btn-logout" class="btn-logout">退出登录</button>
+          </div>
+        </div>
+
+        <!-- 收藏子页面 -->
+        <div id="profile-fav-view" class="profile-sub-view" style="display:none">
+          <div class="sub-view-header">
+            <button class="btn-back" id="btn-fav-back">‹ 返回</button>
+            <span>❤️ 收藏歌单</span>
+            <span></span>
+          </div>
+          <div id="favorites-list" class="favorites-list">
+            <p class="empty-state">还没有收藏歌曲<br>去聊天页搜歌吧~ 🎵</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 底部导航栏 -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-tab="chat">
+        <span class="nav-icon">💬</span>
+        <span class="nav-label">聊天</span>
+      </button>
+      <button class="nav-item" data-tab="player">
+        <span class="nav-icon">🎵</span>
+        <span class="nav-label">播放</span>
+      </button>
+      <button class="nav-item" data-tab="playlist">
+        <span class="nav-icon">📋</span>
+        <span class="nav-label">列表</span>
+      </button>
+      <button class="nav-item" data-tab="favorites">
+        <span class="nav-icon">👤</span>
+        <span class="nav-label">我的</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ==================== 隐藏的音频元素 ==================== -->
+  <audio id="audio-player" preload="auto"></audio>
+
+  <script src="qr-data.js"></script>
+  <script src="api.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

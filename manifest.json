@@ -1,0 +1,16 @@
+{
+  "name": "心情音乐盒",
+  "short_name": "音乐盒",
+  "description": "AI 懂你的音乐播放器",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1a1a2e",
+  "theme_color": "#1a1a2e",
+  "icons": [{
+    "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%231a1a2e' width='100' height='100' rx='20'/><text y='.9em' font-size='70'>🎵</text></svg>",
+    "sizes": "512x512",
+    "type": "image/svg+xml",
+    "purpose": "any maskable"
+  }]
+}
